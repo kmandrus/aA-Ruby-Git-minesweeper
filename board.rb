@@ -3,6 +3,8 @@ require "byebug"
 
 class Board
 
+    attr_reader :size 
+
     def initialize(size)
         @size = size
         @grid = make_grid(size, size)
@@ -127,11 +129,12 @@ class Board
     end
 
     def remove_unflag(pos)
-    
+        row, col = pos
+        grid[row][col].remove_flag
     end
 
     def reveal(pos)
-    
+        grid[row][col].reveal
     end
 
 
