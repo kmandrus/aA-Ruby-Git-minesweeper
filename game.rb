@@ -10,7 +10,8 @@ class Game
 
         until game_over?
             @board.render
-            cmd, *args = user_input
+            cmd, args = user_input
+            self.send(cmd, args)
         end
         
     end
@@ -57,6 +58,18 @@ class Game
         end
 
         true
+    end
+
+    def flag(pos)
+        if @board.flagged?(pos)
+            @board.remove_flag(pos)
+        else
+            @board.place_flag(pos)
+        end
+    end
+
+    def reveal(pos)
+        @board.reveal(pos)
     end
 
 end

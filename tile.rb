@@ -18,7 +18,7 @@ class Tile
     end
 
     def place_flag
-        @flagged = true
+        @flagged = true unless revealed?
     end
 
     def remove_flag

@@ -124,17 +124,24 @@ class Board
     end
 
     def place_flag(pos)
-        row, col = pos
-        grid[row][col].place_flag
+        self[pos].place_flag
     end
 
-    def remove_unflag(pos)
-        row, col = pos
-        grid[row][col].remove_flag
+    def remove_flag(pos)
+        self[pos].remove_flag
     end
 
     def reveal(pos)
-        grid[row][col].reveal
+        self[pos].reveal
+    end
+
+    def flagged?(pos)
+        self[pos].flagged?
+    end
+
+    def [](pos)
+        row, col = pos
+        @grid[row][col]
     end
 
 
