@@ -1,13 +1,83 @@
 require_relative "board.rb"
+require "yaml"
 
 class Game
 
-    @@valid_commands = [:flag, :reveal, :quit]
+    attr_writer :board, :exit_program
 
-    def initialize(difficulty)
-        @board_size = difficulty
-        @board = Board.new(@board_size)
-        @exit_program = false
+    def self.prompt_new_or_saved_game
+        system("clear")
+        puts "Welcome to Minesweeper!\n"
+        
+        puts "Do you want to load a saved game? (y/n)"
+        input = gets.chomp
+        if input == "y"
+            file_path = prompt_saved_game_name
+            game = Game.load_game(file_path)
+        else
+            game = self.new_game
+        end
+        game.play
+        
+        if self.play_again?
+            self.prompt_new_or_saved_game
+        end
+    end
+
+    def self.prompt_saved_game_name
+        puts "please enter the filename of your saved game"
+        gets.chomp
+    end
+
+    def self.play_again?
+        puts "Would you like to play again? (y/n)"
+        input = gets.chomp
+        return true if input == "y"
+        false
+    end
+
+    def self.load_game(file_path)
+        file = File.open(file_path)
+        yaml_board = file.read
+        file.close
+        board = YAML::load(yaml_board)
+        game = Game.new()
+        game.board = board
+        game.exit_program = false
+        game
+    end
+
+    def self.new_game
+        difficulty = self.user_selects_difficulty
+        game = Game.new()
+        game.board = Board.new(difficulty)
+        game.exit_program = false
+        game
+    end
+
+    def self.user_selects_difficulty
+        puts "please choose your difficulty:"
+        puts "enter 'e' for easy, 'm' for medium, or 'h' for hard"
+        input = gets.chomp
+
+        case input
+        when "e"
+            return 5
+        when "m"
+            return 8
+        when "h"
+            return 12
+        else
+            puts "invalid entry, please try again"
+            return self.user_selects_difficulty
+        end
+    end
+
+    @@valid_commands = [:flag, :reveal, :quit, :save]
+
+    def initialize()
+        @board = nil
+        @exit_program = nil
     end
 
     def play
@@ -26,8 +96,6 @@ class Game
             @board.render
             alert_win
         end
-
-        play_again?
     end
 
     def alert_bomb_revealed
@@ -37,13 +105,6 @@ class Game
 
     def alert_win
         puts "You win!"
-    end
-
-    def play_again?
-        puts "Would you like to play again? (y/n)"
-        input = gets.chomp
-        return true if input == "y"
-        false
     end
 
     def game_over?
@@ -68,7 +129,8 @@ class Game
     def alert_enter_cmd
         puts
         puts "please enter 'reveal' or 'flag' followed by the row and column"
-        puts "for example: reveal 3 5, flag 0 2, or quit"
+        puts "for example: reveal 3 5, flag 0 2"
+        puts "you can also 'save' or 'quit'" 
     end
 
     def parse_input(cmd, args)
@@ -77,7 +139,7 @@ class Game
 
     def valid_input?(cmd, args)
         return false unless @@valid_commands.include?(cmd.to_sym)
-        return true if cmd == "quit"
+        return true if cmd == "quit" || cmd == "save"
         
         digits = (0...@board.size).to_a.map(&:to_s)
         
@@ -107,42 +169,28 @@ class Game
         @exit_program = true
     end
 
-end
-
-def user_selects_difficulty
-    puts "please choose your difficulty:"
-    puts "enter 'e' for easy, 'm' for medium, or 'h' for hard"
-    input = gets.chomp
-
-    case input
-    when "e"
-        return 5
-    when "m"
-        return 8
-    when "h"
-        return 12
-    when "quit"
-        return nil
-    else
-        puts "invalid entry, try again or enter 'quit' to exit the program"
-        user_selects_difficulty
+    def save(*args)
+        file_path = prompt_for_save_game_file_path
+        file = File.open(file_path, "w")
+        file.print(@board.to_yaml)
+        file.close
+        alert_save_successful
     end
-end
 
-def new_game
-    system("clear")
-    puts "Welcome to Minesweeper\n"
-    difficulty = user_selects_difficulty
-    if difficulty
-        game = Game.new(difficulty)
-        play_again = game.play
+    def alert_save_successful
+        system("clear")
+        puts "save successful"
+        sleep(2)
     end
-    if play_again
-        new_game
-    end
-end
 
+    def prompt_for_save_game_file_path
+        puts "enter the file name of your save game with no spaces"
+        puts "ex: game_1.txt or tough_level.txt"
+        gets.chomp
+    end
+
+end
 
 if __FILE__ == $PROGRAM_NAME
-    new_game
+    Game.prompt_new_or_saved_game
 end

@@ -9,7 +9,6 @@ class Board
         @size = size
         @grid = make_grid(size, size)
         @bomb_revealed = false
-        
     end
 
     def render
