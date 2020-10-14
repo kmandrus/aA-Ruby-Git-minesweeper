@@ -4,8 +4,8 @@ class Game
 
     @@valid_commands = [:flag, :reveal, :quit]
 
-    def initialize()
-        @board_size = 5
+    def initialize(difficulty)
+        @board_size = difficulty
         @board = Board.new(@board_size)
         @exit_program = false
     end
@@ -27,12 +27,7 @@ class Game
             alert_win
         end
 
-        if play_again?
-            @board = Board.new(@board_size)
-            @exit_program = false
-            play
-        end
-        
+        play_again?
     end
 
     def alert_bomb_revealed
@@ -114,7 +109,40 @@ class Game
 
 end
 
+def user_selects_difficulty
+    puts "please choose your difficulty:"
+    puts "enter 'e' for easy, 'm' for medium, or 'h' for hard"
+    input = gets.chomp
+
+    case input
+    when "e"
+        return 5
+    when "m"
+        return 8
+    when "h"
+        return 12
+    when "quit"
+        return nil
+    else
+        puts "invalid entry, try again or enter 'quit' to exit the program"
+        user_selects_difficulty
+    end
+end
+
+def new_game
+    system("clear")
+    puts "Welcome to Minesweeper\n"
+    difficulty = user_selects_difficulty
+    if difficulty
+        game = Game.new(difficulty)
+        play_again = game.play
+    end
+    if play_again
+        new_game
+    end
+end
+
+
 if __FILE__ == $PROGRAM_NAME
-    game = Game.new
-    game.play
+    new_game
 end

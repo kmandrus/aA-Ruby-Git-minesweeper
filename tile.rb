@@ -34,7 +34,7 @@ class Tile
     end
 
     def render_value
-        return "F" if flagged?
+        return "F" if flagged? && !revealed?
         return "_" unless revealed?
         return "*" if has_bomb?
         return num_adjacent_bombs.to_s
