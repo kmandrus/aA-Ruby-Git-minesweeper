@@ -129,6 +129,10 @@ class Board
         false
     end
 
+    def reveal_all_bombs
+        each_tile { |tile| tile.reveal if tile.has_bomb? }
+    end
+
     def place_flag(pos)
         self[pos].place_flag
     end
@@ -160,6 +164,14 @@ class Board
 
     def bomb_revealed?
         @bomb_revealed
+    end
+
+    def each_tile(&prc)
+        @grid.each do |row|
+            row.each do |tile|
+                prc.call(tile)
+            end
+        end
     end
 
 end
