@@ -5,7 +5,8 @@ class Game
     @@valid_commands = [:flag, :reveal, :quit]
 
     def initialize()
-        @board = Board.new(8)
+        @board_size = 5
+        @board = Board.new(@board_size)
         @exit_program = false
     end
 
@@ -18,19 +19,40 @@ class Game
         end
 
         if @board.bomb_revealed?
+            @board.reveal_all_bombs
             @board.render
             alert_bomb_revealed
+        elsif @board.won?
+            @board.render
+            alert_win
+        end
+
+        if play_again?
+            @board = Board.new(@board_size)
+            @exit_program = false
+            play
         end
         
     end
 
     def alert_bomb_revealed
-        puts "You reveald a bomb!"
+        puts "You revealed a bomb!"
         puts "Game Over"
     end
 
+    def alert_win
+        puts "You win!"
+    end
+
+    def play_again?
+        puts "Would you like to play again? (y/n)"
+        input = gets.chomp
+        return true if input == "y"
+        false
+    end
+
     def game_over?
-        @board.bomb_revealed? || @exit_program
+        @board.bomb_revealed? || @board.won? || @exit_program
     end
 
     def user_input

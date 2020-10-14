@@ -112,6 +112,17 @@ class Board
         positions
     end
 
+    def won?
+        each_tile do |tile|
+            if (!tile.revealed? && !tile.has_bomb?) || 
+                (tile.revealed? && tile.has_bomb?)
+
+                return false
+            end
+        end
+        true
+    end
+
     def adj_tiles(center_pos, grid=@grid)
         adj_positions(center_pos, grid).map do |pos|
             row, col = pos
