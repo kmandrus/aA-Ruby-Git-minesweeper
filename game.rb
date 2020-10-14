@@ -2,8 +2,11 @@ require_relative "board.rb"
 
 class Game
 
+    @@valid_commands = [:flag, :reveal, :quit]
+
     def initialize()
         @board = Board.new(8)
+        @game_over = false
     end
 
     def play
@@ -17,7 +20,7 @@ class Game
     end
 
     def game_over?
-        return false
+        @game_over
     end
 
     def user_input
@@ -46,13 +49,14 @@ class Game
     end
 
     def valid_input?(cmd, args)
+        return false unless @@valid_commands.include?(cmd.to_sym)
+        return true if cmd == "quit"
+        
         digits = (0...@board.size).to_a.map(&:to_s)
         
-        unless (cmd == "flag" || cmd == "reveal") &&
-            Array.try_convert(args) &&
+        unless Array.try_convert(args) &&
             args.size == 2 &&
-            digits.include?(args.first) &&
-            digits.include?(args.last)
+            args.all? { |arg| digits.include?(arg) }
             
             return false
         end
@@ -70,6 +74,10 @@ class Game
 
     def reveal(pos)
         @board.reveal(pos)
+    end
+
+    def quit(*args)
+        @game_over = true
     end
 
 end
