@@ -41,7 +41,7 @@ class Game
     def alert_enter_cmd
         puts
         puts "please enter 'reveal' or 'flag' followed by the row and column"
-        puts "for example: reveal 3 5"
+        puts "for example: reveal 3 5, flag 0 2, or quit"
     end
 
     def parse_input(cmd, args)

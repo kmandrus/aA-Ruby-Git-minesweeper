@@ -86,31 +86,36 @@ class Board
     end
 
     def num_adj_bombs(pos, grid=@grid)
-        adj_bombs = 0
+        bomb_count = 0
         adj_tiles(pos, grid).each do |tile|
-            adj_bombs += 1 if tile.has_bomb?
+            bomb_count += 1 if tile.has_bomb?
         end
-        adj_bombs
+        bomb_count
     end
 
-    def adj_tiles(center_pos, grid=@grid)
+    def adj_positions(center_pos, grid=@grid)
+        positions = []
         center_row, center_col = center_pos
         start_row = center_row - 1
         start_col = center_col - 1
-        
-        adj = []
+
         (start_col..start_col + 2).each do |col_num|
             (start_row..start_row + 2).each do |row_num|
-                
                 pos = [row_num, col_num]
                 if valid_pos?(pos) && (center_pos != pos)
-                    adj << grid[row_num][col_num]
+                    positions << pos
                 end
-
             end
         end
-        
-        adj
+       
+        positions
+    end
+
+    def adj_tiles(center_pos, grid=@grid)
+        adj_positions(center_pos, grid).map do |pos|
+            row, col = pos
+            grid[row][col]
+        end
     end
 
     def valid_pos?(pos)
@@ -132,7 +137,13 @@ class Board
     end
 
     def reveal(pos)
-        self[pos].reveal
+        tile = self[pos]
+        unless tile.revealed?
+            tile.reveal
+            unless tile.has_bomb? || tile.num_adjacent_bombs > 0
+                adj_positions(pos).each { |pos| reveal(pos) }
+            end
+        end
     end
 
     def flagged?(pos)
