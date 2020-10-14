@@ -8,6 +8,7 @@ class Board
     def initialize(size)
         @size = size
         @grid = make_grid(size, size)
+        @bomb_revealed = false
         
     end
 
@@ -140,8 +141,10 @@ class Board
         tile = self[pos]
         unless tile.revealed?
             tile.reveal
-            unless tile.has_bomb? || tile.num_adjacent_bombs > 0
-                adj_positions(pos).each { |pos| reveal(pos) }
+            if tile.has_bomb?
+                @bomb_revealed = true
+            elsif tile.num_adjacent_bombs == 0
+                adj_positions(pos).each { |adj_pos| reveal(adj_pos) }
             end
         end
     end
@@ -155,6 +158,8 @@ class Board
         @grid[row][col]
     end
 
-
+    def bomb_revealed?
+        @bomb_revealed
+    end
 
 end

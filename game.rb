@@ -6,7 +6,7 @@ class Game
 
     def initialize()
         @board = Board.new(8)
-        @game_over = false
+        @exit_program = false
     end
 
     def play
@@ -16,11 +16,21 @@ class Game
             cmd, args = user_input
             self.send(cmd, args)
         end
+
+        if @board.bomb_revealed?
+            @board.render
+            alert_bomb_revealed
+        end
         
     end
 
+    def alert_bomb_revealed
+        puts "You reveald a bomb!"
+        puts "Game Over"
+    end
+
     def game_over?
-        @game_over
+        @board.bomb_revealed? || @exit_program
     end
 
     def user_input
@@ -77,7 +87,7 @@ class Game
     end
 
     def quit(*args)
-        @game_over = true
+        @exit_program = true
     end
 
 end
