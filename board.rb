@@ -16,7 +16,7 @@ class Board
         system("clear")
         render_str = top_row_str
         @grid.each_with_index do |row, row_num|
-            render_str << row_num.to_s + space + space
+            render_str << row_num.to_s.ljust(row_header_width)
             row.each do |tile|
                 render_str << tile.render_value + space
             end
@@ -26,35 +26,21 @@ class Board
     end
 
     def top_row_str
-        top_row = "     "
-        (0...@size).each { |col_num| top_row << col_num.to_s + space }
+        top_row = "".ljust(row_header_width)
+        (0...@size).each { |col_num| top_row << col_num.to_s.ljust(col_width) }
         top_row << new_line + "\n"
         top_row
     end
 
-    def debug_render
-        system("clear")
-        render_str = top_row_str
-
-        @grid.each_with_index do |row, row_num|
-            render_str << row_num.to_s + space + space
-            row.each do |tile|
-                if tile.has_bomb?
-                    render_str << "*" + space
-                else
-                    render_str << tile.num_adjacent_bombs.to_s + space
-                end
-            end
-            render_str << new_line 
-        end
-        
-        print render_str
+    def col_width
+        3
     end
-
+    def row_header_width
+        5
+    end
     def new_line
         "\n\n"
     end
-
     def space
         "  "
     end
