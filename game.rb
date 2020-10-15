@@ -1,39 +1,20 @@
 require_relative "board.rb"
+require_relative "user_io.rb"
 require "yaml"
 
 class Game
 
     attr_writer :board, :exit_program
 
-    def self.prompt_new_or_saved_game
-        system("clear")
-        puts "Welcome to Minesweeper!\n"
-        
-        puts "Do you want to load a saved game? (y/n)"
-        input = gets.chomp
-        if input == "y"
-            file_path = prompt_saved_game_name
+    def self.setup_game
+        User_IO.welcome
+        if User_IO.load_saved_game?
+            file_path = User_IO.prompt_for_save_game_filename
             game = Game.load_game(file_path)
         else
             game = self.new_game
         end
-        game.play
-        
-        if self.play_again?
-            self.prompt_new_or_saved_game
-        end
-    end
-
-    def self.prompt_saved_game_name
-        puts "please enter the filename of your saved game"
-        gets.chomp
-    end
-
-    def self.play_again?
-        puts "Would you like to play again? (y/n)"
-        input = gets.chomp
-        return true if input == "y"
-        false
+        game
     end
 
     def self.load_game(file_path)
@@ -48,29 +29,11 @@ class Game
     end
 
     def self.new_game
-        difficulty = self.user_selects_difficulty
+        difficulty = User_IO.select_difficulty
         game = Game.new()
         game.board = Board.new(difficulty)
         game.exit_program = false
         game
-    end
-
-    def self.user_selects_difficulty
-        puts "please choose your difficulty:"
-        puts "enter 'e' for easy, 'm' for medium, or 'h' for hard"
-        input = gets.chomp
-
-        case input
-        when "e"
-            return 5
-        when "m"
-            return 8
-        when "h"
-            return 12
-        else
-            puts "invalid entry, please try again"
-            return self.user_selects_difficulty
-        end
     end
 
     @@valid_commands = [:flag, :reveal, :quit, :save]
@@ -81,56 +44,33 @@ class Game
     end
 
     def play
-
         until game_over?
             @board.render
-            cmd, args = user_input
+            cmd, args = get_user_cmd
             self.send(cmd, args)
         end
 
         if @board.bomb_revealed?
             @board.reveal_all_bombs
             @board.render
-            alert_bomb_revealed
+            User_IO.bomb_revealed
         elsif @board.won?
             @board.render
-            alert_win
+            User_IO.win_message
         end
-    end
-
-    def alert_bomb_revealed
-        puts "You revealed a bomb!"
-        puts "Game Over"
-    end
-
-    def alert_win
-        puts "You win!"
     end
 
     def game_over?
         @board.bomb_revealed? || @board.won? || @exit_program
     end
 
-    def user_input
-        alert_enter_cmd
-        cmd, *args = gets.chomp.split
+    def get_user_cmd
+        cmd, args = User_IO.enter_cmd
         until valid_input?(cmd, args)
-            alert_invalid_input
-            cmd, *args = gets.chomp.split
+            User_IO.invalid_input
+            cmd, args = User_IO.enter_cmd
         end
         parse_input(cmd, args)
-    end
-
-    def alert_invalid_input
-        puts "invalid input"
-        puts "please try again"
-    end
-
-    def alert_enter_cmd
-        puts
-        puts "please enter 'reveal' or 'flag' followed by the row and column"
-        puts "for example: reveal 3 5, flag 0 2"
-        puts "you can also 'save' or 'quit'" 
     end
 
     def parse_input(cmd, args)
@@ -142,7 +82,6 @@ class Game
         return true if cmd == "quit" || cmd == "save"
         
         digits = (0...@board.size).to_a.map(&:to_s)
-        
         unless Array.try_convert(args) &&
             args.size == 2 &&
             args.all? { |arg| digits.include?(arg) }
@@ -170,27 +109,24 @@ class Game
     end
 
     def save(*args)
-        file_path = prompt_for_save_game_file_path
+        file_path = User_IO.prompt_for_save_game_filename
         file = File.open(file_path, "w")
         file.print(@board.to_yaml)
         file.close
-        alert_save_successful
-    end
-
-    def alert_save_successful
-        system("clear")
-        puts "save successful"
-        sleep(2)
-    end
-
-    def prompt_for_save_game_file_path
-        puts "enter the file name of your save game with no spaces"
-        puts "ex: game_1.txt or tough_level.txt"
-        gets.chomp
+        User_IO.save_successful
     end
 
 end
 
+def run
+    game = Game.setup_game
+    game.play
+
+    if User_IO.play_again?
+        run
+    end
+end
+
 if __FILE__ == $PROGRAM_NAME
-    Game.prompt_new_or_saved_game
+    run
 end
