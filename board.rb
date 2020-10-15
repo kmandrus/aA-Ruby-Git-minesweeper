@@ -1,5 +1,6 @@
 require_relative "tile.rb"
 require "byebug"
+require 'colorize'
 
 class Board
 
@@ -157,6 +158,7 @@ class Board
             tile.reveal
             if tile.has_bomb?
                 @bomb_revealed = true
+                tile.bomb_exploded = true
             elsif tile.num_adjacent_bombs == 0
                 adj_positions(pos).each { |adj_pos| reveal(adj_pos) }
             end
