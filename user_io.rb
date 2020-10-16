@@ -25,8 +25,9 @@ class User_IO
         gets.chomp
     end
 
-    def self.win_message
+    def self.win_message(time_solved)
         puts "You win!"
+        puts "Solution time: #{time_solved}"
     end
 
     def self.select_difficulty

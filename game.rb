@@ -1,6 +1,7 @@
 require_relative "board.rb"
 require_relative "user_io.rb"
 require_relative "renderer.rb"
+require_relative "timer.rb"
 require "yaml"
 
 class Game
@@ -25,7 +26,6 @@ class Game
         board = YAML::load(yaml_board)
         game = Game.new()
         game.board = board
-        game.exit_program = false
         game.renderer = Renderer.new(board)
         game
     end
@@ -35,7 +35,6 @@ class Game
         game = Game.new()
         board = Board.new(difficulty)
         game.board = board
-        game.exit_program = false
         game.renderer = Renderer.new(board)
         game
     end
@@ -44,12 +43,14 @@ class Game
 
     def initialize()
         @board = nil
-        @exit_program = nil
-        @renderer
+        @exit_program = false
+        @renderer = nil
+        @timer = Timer.new
         @selected_pos = [0,0]
     end
 
     def play
+        @timer.start
         until game_over?
             @renderer.render(@selected_pos)
             User_IO.instructions
@@ -59,6 +60,7 @@ class Game
             end
             execute_cmd(cmd)
         end
+        @timer.stop
 
         if @board.bomb_revealed?
             @board.reveal_all_bombs
@@ -66,7 +68,7 @@ class Game
             User_IO.bomb_revealed
         elsif @board.won?
             @renderer.render([0,0])
-            User_IO.win_message
+            User_IO.win_message(@timer.time_ellapsed_in_min_sec)
         end
     end
 
