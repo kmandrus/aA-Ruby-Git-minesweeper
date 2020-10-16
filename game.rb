@@ -1,10 +1,11 @@
 require_relative "board.rb"
 require_relative "user_io.rb"
+require_relative "renderer.rb"
 require "yaml"
 
 class Game
 
-    attr_writer :board, :exit_program
+    attr_writer :board, :exit_program, :renderer
 
     def self.setup_game
         User_IO.welcome
@@ -25,14 +26,17 @@ class Game
         game = Game.new()
         game.board = board
         game.exit_program = false
+        game.renderer = Renderer.new(board)
         game
     end
 
     def self.new_game
         difficulty = User_IO.select_difficulty
         game = Game.new()
-        game.board = Board.new(difficulty)
+        board = Board.new(difficulty)
+        game.board = board
         game.exit_program = false
+        game.renderer = Renderer.new(board)
         game
     end
 
@@ -41,21 +45,22 @@ class Game
     def initialize()
         @board = nil
         @exit_program = nil
+        @renderer
     end
 
     def play
         until game_over?
-            @board.render
+            @renderer.render([0,0])
             cmd, args = get_user_cmd
             self.send(cmd, args)
         end
 
         if @board.bomb_revealed?
             @board.reveal_all_bombs
-            @board.render
+            @renderer.render([0,0])
             User_IO.bomb_revealed
         elsif @board.won?
-            @board.render
+            @renderer.render([0,0])
             User_IO.win_message
         end
     end

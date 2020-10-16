@@ -4,45 +4,12 @@ require 'colorize'
 
 class Board
 
-    attr_reader :size 
+    attr_reader :size
 
     def initialize(size)
         @size = size
         @grid = make_grid(size, size)
         @bomb_revealed = false
-    end
-
-    def render
-        system("clear")
-        render_str = top_row_str
-        @grid.each_with_index do |row, row_num|
-            render_str << row_num.to_s.ljust(row_header_width)
-            row.each do |tile|
-                render_str << tile.render_value + space
-            end
-            render_str << new_line
-        end
-        print render_str
-    end
-
-    def top_row_str
-        top_row = "".ljust(row_header_width)
-        (0...@size).each { |col_num| top_row << col_num.to_s.ljust(col_width) }
-        top_row << new_line + "\n"
-        top_row
-    end
-
-    def col_width
-        3
-    end
-    def row_header_width
-        5
-    end
-    def new_line
-        "\n\n"
-    end
-    def space
-        "  "
     end
 
     def make_grid(width, num_bombs)
@@ -168,6 +135,15 @@ class Board
         @grid.each do |row|
             row.each do |tile|
                 prc.call(tile)
+            end
+        end
+    end
+
+    def each_tile_with_pos(&prc)
+        @grid.each_with_index do |row, row_num|
+            row.each_with_index do |tile, col_num|
+                pos = [row_num, col_num]
+                prc.call(tile, pos)
             end
         end
     end
