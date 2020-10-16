@@ -46,13 +46,18 @@ class Game
         @board = nil
         @exit_program = nil
         @renderer
+        @selected_pos = [0,0]
     end
 
     def play
         until game_over?
-            @renderer.render([0,0])
-            cmd, args = get_user_cmd
-            self.send(cmd, args)
+            @renderer.render(@selected_pos)
+            User_IO.instructions
+            cmd = User_IO.read_key_press
+            until valid_cmd?(cmd)
+                cmd = User_IO.read_key_press
+            end
+            execute_cmd(cmd)
         end
 
         if @board.bomb_revealed?
@@ -65,36 +70,42 @@ class Game
         end
     end
 
+    def valid_cmd?(cmd)
+        cmds = ["\r", "\e", "\e[A", "\e[B", "\e[C", "\e[D", "\u0003", "f", "s"]
+        cmds.include?(cmd)
+    end
+
+    def execute_cmd(cmd)  
+        row, col = @selected_pos
+        
+        case cmd
+        when "\r" #RETURN
+            reveal(@selected_pos)
+        when "\e" #ESCAPE
+            quit
+        when "s"
+            save
+        when "\e[A" #UP ARROW
+            new_pos = [row - 1, col]
+            @selected_pos = new_pos if @board.valid_pos?(new_pos)
+        when "\e[B" #DOWN ARROW
+            new_pos = [row + 1, col]
+            @selected_pos = new_pos if @board.valid_pos?(new_pos)
+        when "\e[C" #RIGHT ARROW
+            new_pos = [row, col + 1]
+            @selected_pos = new_pos if @board.valid_pos?(new_pos)
+        when "\e[D" #LEFT ARROW
+            new_pos = [row, col - 1]
+            @selected_pos = new_pos if @board.valid_pos?(new_pos)
+        when "\u0003" #CONTROL C
+            exit 0
+        when "f" #f KEY
+            flag(@selected_pos)
+        end
+    end
+
     def game_over?
         @board.bomb_revealed? || @board.won? || @exit_program
-    end
-
-    def get_user_cmd
-        cmd, args = User_IO.enter_cmd
-        until valid_input?(cmd, args)
-            User_IO.invalid_input
-            cmd, args = User_IO.enter_cmd
-        end
-        parse_input(cmd, args)
-    end
-
-    def parse_input(cmd, args)
-        return [cmd.to_sym, args.map(&:to_i)]
-    end
-
-    def valid_input?(cmd, args)
-        return false unless @@valid_commands.include?(cmd.to_sym)
-        return true if cmd == "quit" || cmd == "save"
-        
-        digits = (0...@board.size).to_a.map(&:to_s)
-        unless Array.try_convert(args) &&
-            args.size == 2 &&
-            args.all? { |arg| digits.include?(arg) }
-            
-            return false
-        end
-
-        true
     end
 
     def flag(pos)
@@ -109,11 +120,11 @@ class Game
         @board.reveal(pos)
     end
 
-    def quit(*args)
+    def quit
         @exit_program = true
     end
 
-    def save(*args)
+    def save
         file_path = User_IO.prompt_for_save_game_filename
         file = File.open(file_path, "w")
         file.print(@board.to_yaml)

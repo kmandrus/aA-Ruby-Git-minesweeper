@@ -1,19 +1,16 @@
+require 'io/console'
+
 class User_IO
     def self.bomb_revealed
         puts "You revealed a bomb!"
         puts "Game Over"
     end
 
-    def self.invalid_input
-        puts "invalid input"
-        puts "please try again"
-    end
-
-    def self.enter_cmd_instructions
+    def self.instructions
         puts
-        puts "enter 'reveal' or 'flag' followed by the row and column"
-        puts "for example: reveal 3 5, flag 0 2"
-        puts "enter 'save' or 'quit' to save or quit the game" 
+        puts "use the arrow keys to move around the board"
+        puts "press 'return' to reveal a tile or 'f' to flag a tile"
+        puts "at any time, press 'esc' to quit or 's' to save the game" 
     end
 
     def self.save_successful
@@ -26,12 +23,6 @@ class User_IO
         puts "enter the filename of your save game"
         puts "ex: 'game_1.txt' or 'tough_level.txt'"
         gets.chomp
-    end
-
-    def self.enter_cmd
-        self.enter_cmd_instructions
-        cmd, *args = gets.chomp.split
-        return [cmd, args]
     end
 
     def self.win_message
@@ -73,6 +64,24 @@ class User_IO
     def self.welcome
         system("clear")
         puts "Welcome to Minesweeper!\n"
+    end
+    
+    #Function snipped from https://gist.github.com/acook/4190379
+    # Reads keypresses from the user including 2 and 3 escape character sequences.
+    def self.read_key_press
+        STDIN.echo = false
+        STDIN.raw!
+    
+        input = STDIN.getc.chr
+        if input == "\e" then
+            input << STDIN.read_nonblock(3) rescue nil
+            input << STDIN.read_nonblock(2) rescue nil
+        end
+        ensure
+        STDIN.echo = true
+        STDIN.cooked!
+    
+        return input
     end
 
 end

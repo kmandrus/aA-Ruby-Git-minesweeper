@@ -14,7 +14,11 @@ class Renderer
             if col == 0   
                 render_str << row.to_s.ljust(row_header_width)
             end
-            render_str << tile.render_value
+            if pos == active_pos
+                render_str << tile.render_value.colorize(:black).on_light_blue
+            else
+                render_str << tile.render_value
+            end
             render_str << space
             if col == @board.size - 1
                 render_str << new_line
